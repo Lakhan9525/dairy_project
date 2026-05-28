@@ -398,8 +398,6 @@ export default function Checkout() {
         razorpayPaymentId: razorpayPaymentId || null,
       });
 
-      // WhatsApp notification to admin
-      const SHOP_PHONE = "916200152774";
       const itemsText = checkoutItems.map((i) => `• ${i.name} × ${i.quantity} = ₹${(i.price * i.quantity).toFixed(0)}`).join("\n");
       const orderDate = new Date().toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
       const msg =
@@ -415,9 +413,12 @@ export default function Checkout() {
         (txnId ? `*Txn ID:* ${txnId}\n` : "") +
         (razorpayOrderId ? `*RZP Order ID:* ${razorpayOrderId}` : "");
       const encodedMsg = encodeURIComponent(msg);
+      console.log("WhatsApp URL:", `https://wa.me/${SHOP_PHONE}?text=${encodedMsg}`);
       const whatsappUrl = `https://wa.me/${SHOP_PHONE}?text=${encodedMsg}`;
+      // Try window.open first, fallback to window.location if blocked
       const newWindow = window.open(whatsappUrl, "_blank");
       if (!newWindow) {
+        console.log("Popup blocked, using window.location");
         window.location.href = whatsappUrl;
       }
 
@@ -498,7 +499,7 @@ export default function Checkout() {
               <div className="relative">
                 <label className="absolute top-2 left-3 text-xs text-muted-foreground">Country/Region</label>
                 <select className="w-full pt-6 pb-2 px-3 border border-border rounded-xl bg-background text-sm appearance-none focus:ring-2 focus:ring-accent/50 outline-none">
-                  <option>INDIA</option>
+                  <option>India</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               </div>
