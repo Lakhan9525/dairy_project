@@ -398,6 +398,29 @@ export default function Checkout() {
         razorpayPaymentId: razorpayPaymentId || null,
       });
 
+      // WhatsApp notification to admin
+      const SHOP_PHONE = "916200152774";
+      const itemsText = checkoutItems.map((i) => `• ${i.name} × ${i.quantity} = ₹${(i.price * i.quantity).toFixed(0)}`).join("\n");
+      const orderDate = new Date().toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+      const msg =
+        `*New Order #${data._id.slice(0, 8)}*\n\n` +
+        `*Customer:* ${form.firstName} ${form.lastName}\n` +
+        `*Phone:* ${form.phone}\n` +
+        `*Date:* ${orderDate}\n` +
+        (userEmail ? `*Email:* ${userEmail}\n` : "") +
+        `*Address:* ${fullAddress}\n\n` +
+        `*Items:*\n${itemsText}\n\n` +
+        `*Total:* ₹${finalTotal.toFixed(0)}\n` +
+        `*Payment:* ${paymentMethod.toUpperCase()}\n` +
+        (txnId ? `*Txn ID:* ${txnId}\n` : "") +
+        (razorpayOrderId ? `*RZP Order ID:* ${razorpayOrderId}` : "");
+      const encodedMsg = encodeURIComponent(msg);
+      const whatsappUrl = `https://wa.me/${SHOP_PHONE}?text=${encodedMsg}`;
+      const newWindow = window.open(whatsappUrl, "_blank");
+      if (!newWindow) {
+        window.location.href = whatsappUrl;
+      }
+
       cart.clear();
       toast.success("Order placed successfully!");
       navigate(`/order-success?id=${data._id}`);
