@@ -475,7 +475,7 @@ export default function Checkout() {
               <div className="relative">
                 <label className="absolute top-2 left-3 text-xs text-muted-foreground">Country/Region</label>
                 <select className="w-full pt-6 pb-2 px-3 border border-border rounded-xl bg-background text-sm appearance-none focus:ring-2 focus:ring-accent/50 outline-none">
-                  <option>India</option>
+                  <option>INDIA</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               </div>
