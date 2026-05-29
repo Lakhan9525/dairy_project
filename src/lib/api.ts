@@ -73,6 +73,7 @@ export const orderAPI = {
     adminApi.patch(`/orders/${id}/status`, { status }),
   updatePayment: (id: string, data: { paymentStatus: string; transactionId?: string; razorpayPaymentId?: string; razorpayOrderId?: string }) =>
     api.patch(`/orders/${id}/payment`, data),
+  sendEmail: (data: any) => api.post("/orders/send-email", data),
 };
 
 export const paymentAPI = {

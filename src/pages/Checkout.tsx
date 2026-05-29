@@ -398,6 +398,25 @@ export default function Checkout() {
         razorpayPaymentId: razorpayPaymentId || null,
       });
 
+      // Send email notification to admin
+      try {
+        await orderAPI.sendEmail({
+          orderId: data._id,
+          customerName: `${form.firstName} ${form.lastName}`,
+          customerPhone: form.phone,
+          customerEmail: userEmail || null,
+          customerAddress: fullAddress,
+          items: checkoutItems,
+          total: finalTotal,
+          paymentMethod: paymentMethod || "online",
+          transactionId: txnId || null,
+          razorpayOrderId: razorpayOrderId || null,
+        });
+      } catch (emailError) {
+        console.error("Failed to send email notification:", emailError);
+        // Don't block order placement if email fails
+      }
+
       const itemsText = checkoutItems.map((i) => `• ${i.name} × ${i.quantity} = ₹${(i.price * i.quantity).toFixed(0)}`).join("\n");
       const orderDate = new Date().toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
       const msg =
