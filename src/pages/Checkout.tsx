@@ -15,6 +15,28 @@ import { paymentAPI, couponAPI } from "@/lib/api";
 const SHOP_PHONE = "916200152774";
 const FALLBACK_IMG = "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=100&q=80";
 
+// Helper function to calculate size multiplier
+const getSizeMultiplier = (size: string) => {
+  switch (size) {
+    case "500ml": return 0.5;
+    case "1L": return 1;
+    case "2L": return 1.9;
+    case "500gm": return 0.5;
+    case "1kg": return 1;
+    case "2kg": return 1.9;
+    default: return 1;
+  }
+};
+
+// Helper function to calculate purchase type discount
+const getPurchaseMultiplier = (purchaseType: string) => {
+  switch (purchaseType) {
+    case "weekly": return 0.92; // 8% discount
+    case "monthly": return 0.9; // 10% discount
+    default: return 1; // one-time or no discount
+  }
+};
+
 const INDIAN_STATES = [
   "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat",
   "Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh",
@@ -65,7 +87,13 @@ export default function Checkout() {
     : items;
   
   const checkoutTotal = productState?.product 
-    ? (productState.product.price * (productState.quantity || 1))
+    ? (() => {
+        const basePrice = productState.product.price;
+        const quantity = productState.quantity || 1;
+        const sizeMultiplier = getSizeMultiplier(productState.selectedSize || "1L");
+        const purchaseMultiplier = getPurchaseMultiplier(productState.purchaseType || "one-time");
+        return Math.round(basePrice * sizeMultiplier * purchaseMultiplier * quantity);
+      })()
     : total;
   const [submitting, setSubmitting] = useState(false);
   const [billingOption, setBillingOption] = useState<"same" | "different">("same");
@@ -750,34 +778,43 @@ export default function Checkout() {
           {/* ── Right: Order Summary ── */}
           <div className="bg-secondary/30 px-6 md:px-10 py-10 space-y-6 border-t lg:border-t-0 border-border">
             <div className="space-y-4">
-              {checkoutItems.map((item) => (
-                <div key={item.id} className="flex items-center gap-4">
-                  <div className="relative">
-                    <img
-                      src={item.image_url || FALLBACK_IMG}
-                      alt={item.name}
-                      className="w-20 h-20 rounded-xl object-cover border border-border shadow-sm"
-                    />
-                    <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-gold text-primary text-xs font-bold flex items-center justify-center shadow-md">
-                      {item.quantity}
-                    </span>
+              {checkoutItems.map((item) => {
+                const sizeMultiplier = productState?.selectedSize ? getSizeMultiplier(productState.selectedSize) : 1;
+                const purchaseMultiplier = productState?.purchaseType ? getPurchaseMultiplier(productState.purchaseType) : 1;
+                const discountedPrice = Math.round(item.price * sizeMultiplier * purchaseMultiplier);
+                const itemTotal = discountedPrice * item.quantity;
+                
+                return (
+                  <div key={item.id} className="flex items-center gap-4">
+                    <div className="relative">
+                      <img
+                        src={item.image_url || FALLBACK_IMG}
+                        alt={item.name}
+                        className="w-20 h-20 rounded-xl object-cover border border-border shadow-sm"
+                      />
+                      <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-gold text-primary text-xs font-bold flex items-center justify-center shadow-md">
+                        {item.quantity}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm text-foreground truncate">{item.name}</p>
+                      {productState?.purchaseType && (
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {productState.purchaseType === 'weekly' ? 'Weekly Plan' : productState.purchaseType === 'monthly' ? 'Monthly Plan' : 'One Time Purchase'}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">₹{discountedPrice.toFixed(2)}/unit</p>
+                      {productState?.selectedSize && (
+                        <p className="text-xs text-accent font-medium">Size: {productState.selectedSize}</p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <span className="font-semibold text-sm text-foreground">₹{itemTotal.toFixed(2)}</span>
+                      <p className="text-xs text-muted-foreground">Subtotal</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-foreground truncate">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {productState?.purchaseType === 'subscription' ? 'Subscription' : 'One Time Purchase'}
-                    </p>
-                    <p className="text-xs text-muted-foreground">₹{item.price.toFixed(2)}/unit</p>
-                    {productState?.selectedSize && (
-                      <p className="text-xs text-accent font-medium">Size: {productState.selectedSize}</p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <span className="font-semibold text-sm text-foreground">₹{(item.price * item.quantity).toFixed(2)}</span>
-                    <p className="text-xs text-muted-foreground">Subtotal</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="border-t border-border pt-4 space-y-3 text-sm">
