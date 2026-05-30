@@ -44,6 +44,10 @@ export default function ProductDetail() {
   ];
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
+  useEffect(() => {
     if (id) {
       productAPI.getById(id).then(({ data }) => {
         const mapped = {
