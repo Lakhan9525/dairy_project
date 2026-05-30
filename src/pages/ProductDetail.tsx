@@ -189,7 +189,16 @@ export default function ProductDetail() {
   const getDiscountedPrice = () => {
     const sizeMultiplier = getSizeMultiplier(selectedSize);
     const basePrice = product?.price || 0;
-    const discountedPrice = basePrice * sizeMultiplier;
+    
+    // Purchase type discounts
+    let purchaseMultiplier = 1;
+    if (purchaseType === "weekly") {
+      purchaseMultiplier = 0.92; // 8% discount for weekly
+    } else if (purchaseType === "monthly") {
+      purchaseMultiplier = 0.9; // 10% discount for monthly
+    }
+    
+    const discountedPrice = basePrice * sizeMultiplier * purchaseMultiplier;
     return Math.round(discountedPrice);
   };
 
@@ -286,20 +295,26 @@ export default function ProductDetail() {
                 <div className="space-y-3">
                   <label className="text-sm font-semibold text-white">Purchase Type</label>
                   <div className="grid grid-cols-3 gap-3">
-                    {purchaseTypes.map((type) => (
-                      <button
-                        key={type.id}
-                        onClick={() => setPurchaseType(type.id as "one-time" | "weekly" | "monthly")}
-                        className={cn(
-                          "p-4 rounded-xl border-2 transition-all text-left",
-                          purchaseType === type.id
-                            ? "border-accent bg-accent/10 text-accent"
-                            : "border-border bg-card text-muted-foreground hover:border-accent/50"
-                        )}
-                      >
-                        <div className="font-semibold text-sm">{type.label}</div>
-                      </button>
-                    ))}
+                    {purchaseTypes.map((type) => {
+                      const savings = type.id === "weekly" ? "Save 8%" : type.id === "monthly" ? "Save 10%" : "";
+                      return (
+                        <button
+                          key={type.id}
+                          onClick={() => setPurchaseType(type.id as "one-time" | "weekly" | "monthly")}
+                          className={cn(
+                            "p-4 rounded-xl border-2 transition-all text-left relative",
+                            purchaseType === type.id
+                              ? "border-accent bg-accent/10 text-accent"
+                              : "border-border bg-card text-muted-foreground hover:border-accent/50"
+                          )}
+                        >
+                          <div className="font-semibold text-sm">{type.label}</div>
+                          {savings && (
+                            <div className="text-xs text-green-400 mt-1">{savings}</div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
